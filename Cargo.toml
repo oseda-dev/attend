@@ -12,3 +12,4 @@ yew = { version = "0.21", features = ["csr"] }
 include_dir = "0.7.4"
 qrcode = "0.14.1"
 image = "0.25.10"
+serde = "1.0.228"

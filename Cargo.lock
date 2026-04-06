@@ -96,6 +96,7 @@ dependencies = [
  "include_dir",
  "mime_guess",
  "qrcode",
+ "serde",
  "tokio",
  "tower-http",
  "yew",
