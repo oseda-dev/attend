@@ -1,16 +1,14 @@
-use qrcode::QrCode;
-use image::Luma;
+use std::error::Error;
 
 
-fn main() {
+mod qr;
 
-    let code = QrCode::new(b"some data").unwrap();
-
-
-    let image = code.render::<Luma<u8>>().build();
-
-    image.save("img.png").expect("Image could not save");
+fn main() -> Result<(), Box<dyn Error>> {
 
 
+    let path = qr::gen_qr_code("https://www.google.com")?;
+
+
+    Ok(())
     
 }
