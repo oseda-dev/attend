@@ -1,8 +1,7 @@
 // todo document that you must do the arching yourself
 
 use std::{
-    error::Error,
-    path::{Path, PathBuf},
+    collections::HashMap, error::Error, path::{Path, PathBuf}
 };
 
 use std::env;
@@ -17,6 +16,7 @@ mod paths;
 mod qr;
 mod cli;
 mod shell;
+mod templates;
 
 fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     // todo document me
@@ -47,7 +47,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     shell::mkdir_p(&selected_dir)?;
     
+
+
+    // let template_path = PathBuf::from("templates/index.html");
+    let template = templates::load_template()?;
     
+    let mut replacements: HashMap<String, String> = HashMap::new();
+    replacements.insert("DATE".to_owned(), "2025".to_owned());
+    let output = templates::render_template(template, replacements);
+
+    println!("{:?}", output);
+
+    // println!("template: {:?}", template);
     // backend_handle.await?.expect("Server shut downs");
     Ok(())
 }

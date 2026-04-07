@@ -16,3 +16,4 @@ serde = "1.0.228"
 shellexpand = "3.1.2"
 inquire = { version = "0.9.4", features = ["date"] }
 chrono = "0.4.44"
+derive_more = { version = "2.1.1", features = ["full"] }
