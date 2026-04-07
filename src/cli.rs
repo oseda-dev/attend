@@ -1,0 +1,39 @@
+use std::{error::Error, fs::File, io::Read, path::{Path, PathBuf}};
+
+use chrono::Local;
+use inquire::DateSelect;
+
+use crate::shell::touch;
+
+use inquire::Select;
+
+
+pub fn prompt_date() -> Result<String, Box<dyn Error>> {
+    // super fancy date selector. default to system times today
+    let today = Local::now().naive_local().date();
+    let date = DateSelect::new("Select a date (Enter for today)")
+        .with_default(today)
+        .prompt()?;
+
+    Ok(date.format("%Y-%m-%d").to_string())
+}
+
+pub fn prompt_class(home: &Path) -> Result<String, Box<dyn Error>> {
+    let config_path = PathBuf::from(home).join("attend.conf");
+    touch(&config_path)?;
+
+    let mut conf_file = File::open(config_path)?;
+
+    let mut buf = String::new();
+    conf_file.read_to_string(&mut buf)?;
+
+    let classes = buf
+        .trim()
+        .split("\n")
+        .map(str::to_owned)
+        .collect::<Vec<String>>();
+    
+    let choice = Select::new("Select class:", classes).prompt()?;
+
+    Ok(choice)
+}
