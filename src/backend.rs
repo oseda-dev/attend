@@ -31,6 +31,7 @@ async fn record_attendance(Json(payload): Json<LogAttendanceRequest>) {
 }
 
 fn csv_add_row(email: &str, id: &str, timestamp: &str) -> Result<(), Box<dyn Error>> {
+    // todo create file upon server start
     
     let mut file = OpenOptions::new()
         .append(true)

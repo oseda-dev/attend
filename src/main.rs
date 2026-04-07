@@ -2,16 +2,11 @@
 
 use std::{
     error::Error,
-    fs::File,
-    io::Read,
     path::{Path, PathBuf},
 };
 
 use std::env;
 
-use crate::{
-    paths::{expand_path, mkdir_p},
-};
 
 use chrono::Local;
 use inquire::{DateSelect, Select};
@@ -20,8 +15,8 @@ use std::fs::read_to_string;
 mod backend;
 mod paths;
 mod qr;
-mod shell;
 mod cli;
+mod shell;
 
 fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     // todo document me
@@ -39,7 +34,7 @@ fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
 async fn main() -> Result<(), Box<dyn Error>> {
 
     let home_path = get_attend_home()?;
-    mkdir_p(&home_path)?;
+    shell::mkdir_p(&home_path)?;
 
 
     // let path = qr::gen_qr_code("https://www.google.com")?;
@@ -50,7 +45,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let selected_dir = home_path.join(class).join(date);
 
-    mkdir_p(&selected_dir)?;
+    shell::mkdir_p(&selected_dir)?;
     
     
     // backend_handle.await?.expect("Server shut downs");

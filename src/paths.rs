@@ -10,17 +10,3 @@ pub fn expand_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
 
     Ok(expanded.into_owned().into())
 }
-
-pub fn mkdir_p(path: &Path) -> Result<(), Box<dyn Error>> {
-
-    create_dir_all(path)?;
-    Ok(())
-}
-
-pub fn touch(path: &Path) -> io::Result<()> {
-    OpenOptions::new()
-        .create(true)
-        .write(true)
-        .open(path)?;
-    Ok(())
-}
