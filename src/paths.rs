@@ -1,5 +1,5 @@
 use std::{
-    error::Error, fs::create_dir_all, path::{Path, PathBuf}
+    error::Error, fs::{OpenOptions, create_dir_all}, io, path::{Path, PathBuf}
 };
 
 pub fn expand_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
@@ -14,5 +14,13 @@ pub fn expand_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
 pub fn mkdir_p(path: &Path) -> Result<(), Box<dyn Error>> {
 
     create_dir_all(path)?;
+    Ok(())
+}
+
+pub fn touch(path: &Path) -> io::Result<()> {
+    OpenOptions::new()
+        .create(true)
+        .write(true)
+        .open(path)?;
     Ok(())
 }
