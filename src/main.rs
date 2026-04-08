@@ -11,7 +11,7 @@ use chrono::Local;
 use inquire::{DateSelect, Select};
 use std::fs::read_to_string;
 
-mod backend;
+mod web;
 mod paths;
 mod qr;
 mod cli;
@@ -47,16 +47,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     shell::mkdir_p(&selected_dir)?;
     
-
+    match web::serve().await {
+        Ok(()) => {},
+        Err(err) => {println!("{:?}", err)},
+    };
 
     // let template_path = PathBuf::from("templates/index.html");
-    let template = templates::load_template()?;
-    
-    let mut replacements: HashMap<String, String> = HashMap::new();
-    replacements.insert("DATE".to_owned(), "2025".to_owned());
-    let output = templates::render_template(template, replacements);
 
-    println!("{:?}", output);
+    // println!("{:?}", output);
 
     // println!("template: {:?}", template);
     // backend_handle.await?.expect("Server shut downs");
