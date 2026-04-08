@@ -9,7 +9,10 @@ use std::env;
 
 use chrono::Local;
 use inquire::{DateSelect, Select};
+use local_ip_address::linux::local_ip;
 use std::fs::read_to_string;
+
+use crate::web::Socket;
 
 mod web;
 mod paths;
@@ -47,16 +50,32 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     shell::mkdir_p(&selected_dir)?;
     
-    match web::serve().await {
-        Ok(()) => {},
-        Err(err) => {println!("{:?}", err)},
+    // match web::serve().await {
+    //     Ok(()) => {},
+    //     Err(err) => {println!("{:?}", err)},
+    // };
+    let port = 3000;
+
+    let bind_socket = Socket{
+        ip: "0.0.0.0".to_string(),
+        port: port
     };
 
+    let backend_handle = tokio::spawn(async move { 
+        web::serve(&bind_socket).await
+    });
+
+    let pub_socket = Socket{
+        ip: local_ip()?.to_string(),
+        port: port
+    };
+
+    println!("Please visit {}", pub_socket);
     // let template_path = PathBuf::from("templates/index.html");
 
     // println!("{:?}", output);
 
     // println!("template: {:?}", template);
-    // backend_handle.await?.expect("Server shut downs");
+    backend_handle.await?.expect("Server shut down");
     Ok(())
 }

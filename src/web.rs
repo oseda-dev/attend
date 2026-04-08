@@ -1,5 +1,5 @@
-use core::time;
-use std::{collections::HashMap, error::Error, fs::{File, OpenOptions}};
+use core::{fmt, time};
+use std::{collections::HashMap, error::Error, fs::{File, OpenOptions}, os::unix::net::SocketAddr};
 
 use axum::{Json, Router, http::StatusCode, response::{Html, IntoResponse}, routing::{get, post}};
 use tokio::net::TcpListener;
@@ -15,19 +15,33 @@ struct LogAttendanceRequest {
     email: String,
 }
 
-pub async fn serve() -> Result<(), Box<dyn Error + Send + Sync>> {
+
+pub struct Socket {
+    pub ip: String,
+    pub port: u16
+}
+
+impl fmt::Display for Socket{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.ip, self.port)
+    }
+}
+
+pub async fn serve(sock: &Socket) -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let app: Router = Router::new()
         .route("/", get(frontend))
         .route("/record", post(record_attendance));
         
-    let listener = TcpListener::bind("0.0.0.0:3000").await?;
+
+    let listener = TcpListener::bind(sock.to_string()).await?;
     axum::serve(listener, app).await?;
 
     Ok(())
 
 }
 
+// pretty much just a wrapper. This cant return a result for the axum::route function
 async fn frontend() -> impl IntoResponse {
     match render_frontend() {
         Ok(html_content) => (StatusCode::OK, Html(html_content)).into_response(),
