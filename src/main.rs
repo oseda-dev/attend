@@ -21,6 +21,7 @@ mod cli;
 mod shell;
 mod templates;
 
+
 fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     // todo document me
     let key = "ATTEND_HOME";
@@ -32,6 +33,14 @@ fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
 
     Ok(expanded)
 }
+
+#[derive(Clone, Debug)]
+pub struct AttendFrontendState {
+    date: String,
+    bind_socket: Socket,
+    pub_socket: Socket,
+}
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -46,7 +55,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let class = cli::prompt_class(&home_path)?;
     let date = cli::prompt_date()?;
 
-    let selected_dir = home_path.join(class).join(date);
+    let selected_dir = home_path.join(class).join(date.clone());
 
     shell::mkdir_p(&selected_dir)?;
     
@@ -61,14 +70,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
         port: port
     };
 
-    let backend_handle = tokio::spawn(async move { 
-        web::serve(&bind_socket).await
-    });
-
     let pub_socket = Socket{
         ip: local_ip()?.to_string(),
         port: port
     };
+
+    let attend_state = AttendFrontendState { 
+        date: date,
+        pub_socket: pub_socket.clone(),
+        bind_socket: bind_socket
+    };
+
+    let backend_handle = tokio::spawn(async move { 
+        web::serve(&attend_state).await
+    });
+
 
     println!("Please visit {}", pub_socket);
     // let template_path = PathBuf::from("templates/index.html");
