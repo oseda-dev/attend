@@ -29,11 +29,7 @@ impl fmt::Display for Socket{
     }
 }
 
-
-
 pub async fn serve(state: &AttendFrontendState) -> Result<(), Box<dyn Error + Send + Sync>> {
-
-
 
     let app: Router = Router::new()
         .route("/", get(frontend))
@@ -67,6 +63,7 @@ fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::
     
     let output = templates::render_template(template, replacements);
     
+    println!("{:?}", output.clone());
     Ok(output.to_string())
 }
 

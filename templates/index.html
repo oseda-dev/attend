@@ -127,7 +127,7 @@
                 
                 // post to backend here eventually
 
-                fetch('{{ SOCKET }}', {
+                fetch('http://{{ SOCKET }}/record', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
