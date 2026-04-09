@@ -29,7 +29,7 @@ pub fn prompt_class(home: &Path) -> Result<String, Box<dyn Error>> {
 
     let classes = buf
         .trim()
-        .split("\n")
+        .lines()
         .map(str::to_owned)
         .collect::<Vec<String>>();
     

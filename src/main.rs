@@ -7,7 +7,7 @@ use std::{
 use std::env;
 
 
-use local_ip_address::linux::local_ip;
+use local_ip_address::local_ip;
 
 use crate::web::Socket;
 
