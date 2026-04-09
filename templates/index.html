@@ -134,8 +134,8 @@
                 })
                 .then(response => {
                     if (response.ok) {
+                        form.outerHTML = "<h2>Submission Success</h2><p>Your attendance has been saved</p>"
                         console.log('Success: Record saved');
-                        // You can't call .json() here if the body is empty!
                     } else {
                         throw new Error('Server returned an error');
                     }

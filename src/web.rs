@@ -11,7 +11,6 @@ use crate::{AttendFrontendState, get_attend_home, templates::{self, HTML}};
 
 #[derive(serde::Deserialize, Debug)]
 struct LogAttendanceRequest {
-    // need to handle a session ID eventually
     id: String,
     email: String,
 }
@@ -63,7 +62,6 @@ fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::
     
     let output = templates::render_template(template, replacements);
     
-    println!("{:?}", output.clone());
     Ok(output.to_string())
 }
 
@@ -71,7 +69,6 @@ fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::
 async fn record_attendance(
     State(state): State<AttendFrontendState>,
     Json(payload): Json<LogAttendanceRequest>) {
-    println!("{:?}", payload);
 
     let log_path: PathBuf = [
             state.home_path, state.class.into(), state.date.into(), "log.csv".into()
@@ -82,6 +79,8 @@ async fn record_attendance(
 
 fn csv_add_row(path: PathBuf, email: &str, id: &str, timestamp: &str) -> Result<(), Box<dyn Error>> {
 
+
+
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
@@ -90,6 +89,7 @@ fn csv_add_row(path: PathBuf, email: &str, id: &str, timestamp: &str) -> Result<
     let row = format!("{},{},{}", email, id, timestamp);
     writeln!(file, "{}", row)?;
     
+    println!("Recorded attendance for {}", email);
 
     Ok(())
 }
