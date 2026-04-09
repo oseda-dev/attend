@@ -1,7 +1,7 @@
 // todo document that you must do the arching yourself
 
 use std::{
-    error::Error, path::{Path, PathBuf}
+    collections::{BTreeMap, HashSet}, error::Error, fs, path::{Path, PathBuf}
 };
 
 use std::env;
@@ -43,9 +43,73 @@ pub struct AttendFrontendState {
     home_path: PathBuf
 }
 
+fn handle_check() -> Result<(), Box<dyn Error>> {
+    let home_path = get_attend_home()?;
+    shell::mkdir_p(&home_path)?;
+    shell::touch(&home_path.join("attend.conf"))?;
+
+    let class = cli::prompt_class(&home_path)?;
+    let class_path: PathBuf = home_path.join(class);
+
+    // b tree map is basically just a sorted map
+    let mut student_data: BTreeMap<String, usize> = BTreeMap::new();
+    let mut total_days = 0;
+
+    for entry in fs::read_dir(&class_path)? {
+        let entry = entry?;
+        let day_path = entry.path();
+
+        if day_path.is_dir() {
+            let log_file = day_path.join("log.csv");
+            if log_file.exists() {
+                total_days += 1;
+
+                // hash set to ignore dupes
+                let mut present_today = HashSet::new();
+                let content = fs::read_to_string(log_file)?;
+
+                for line in content.lines() {
+                    let parts: Vec<&str> = line.split(',').collect();
+                    if let Some(email) = parts.first() {
+                        if !email.trim().is_empty() {
+                            present_today.insert(email.trim().to_string());
+                        }
+                    }
+                }
+
+                for email in present_today {
+                    *student_data.entry(email).or_insert(0) += 1;
+                }
+            }
+        }
+    }
+
+    println!("\nAttendance Report for: {}", class_path.display());
+    println!("Total Days Recorded: {}", total_days);
+    println!("{:-<55}", "");
+    println!("{:<30} | {:<10} | {:<10}", "Student Email", "Attended", "Missed");
+    println!("{:-<55}", "");
+
+    for (email, attended_count) in &student_data {
+        let missed_count = total_days - attended_count;
+        println!("{:<30} | {:<10} | {:<10}", email, attended_count, missed_count);
+    }
+
+    Ok(())
+}
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+
+    if let Some(arg) = std::env::args().nth(1) {
+        match arg.as_str() {
+            "check" => return handle_check(),
+            _ => {
+                return Err("Err: Unsupported Argument".into());
+            }
+        }
+    }
 
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
