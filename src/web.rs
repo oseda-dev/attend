@@ -1,12 +1,12 @@
 use core::{fmt, time};
-use std::{collections::HashMap, error::Error, fs::{File, OpenOptions}, os::unix::net::SocketAddr};
+use std::{collections::HashMap, error::Error, fs::{File, OpenOptions}, os::unix::net::SocketAddr, path::PathBuf};
 
 use axum::{Json, Router, extract::State, http::StatusCode, response::{Html, IntoResponse}, routing::{get, post}};
 use derive_more::derive;
 use tokio::net::TcpListener;
 use std::io::Write;
 
-use crate::{AttendFrontendState, templates::{self, HTML}};
+use crate::{AttendFrontendState, get_attend_home, templates::{self, HTML}};
 
 
 #[derive(serde::Deserialize, Debug)]
@@ -68,18 +68,24 @@ fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::
 }
 
 
-async fn record_attendance(Json(payload): Json<LogAttendanceRequest>) {
+async fn record_attendance(
+    State(state): State<AttendFrontendState>,
+    Json(payload): Json<LogAttendanceRequest>) {
     println!("{:?}", payload);
-    let _ = csv_add_row(&payload.email, &payload.id, "now").expect("Could not append row");
+
+    let log_path: PathBuf = [
+            state.home_path, state.class.into(), state.date.into(), "log.csv".into()
+        ].iter().collect();
+
+    let _ = csv_add_row(log_path, &payload.email, &payload.id, "now").expect("Could not append row");
 }
 
-fn csv_add_row(email: &str, id: &str, timestamp: &str) -> Result<(), Box<dyn Error>> {
-    // todo create file upon server start
-    
-    let mut file = OpenOptions::new()
-        .append(true)
-        .open("log.csv")?;
+fn csv_add_row(path: PathBuf, email: &str, id: &str, timestamp: &str) -> Result<(), Box<dyn Error>> {
 
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
 
     let row = format!("{},{},{}", email, id, timestamp);
     writeln!(file, "{}", row)?;

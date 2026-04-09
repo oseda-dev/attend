@@ -122,11 +122,6 @@
                 e.preventDefault();
                 const email = document.getElementById('emailInput').value;
                 
-                console.log('email was', email);
-                console.log('sesion id was:', sessionId);
-                
-                // post to backend here eventually
-
                 fetch('http://{{ SOCKET }}/record', {
                     method: 'POST',
                     headers: {
@@ -137,10 +132,15 @@
                         email: email,
                     }),
                 })
-                .then(response => response.json()) 
-                .then(data => console.log('Success:', data))
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Success: Record saved');
+                        // You can't call .json() here if the body is empty!
+                    } else {
+                        throw new Error('Server returned an error');
+                    }
+                })
                 .catch(error => console.error('Error:', error));
-
             });
         });
     </script>

@@ -37,8 +37,10 @@ fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
 #[derive(Clone, Debug)]
 pub struct AttendFrontendState {
     date: String,
+    class: String,
     bind_socket: Socket,
     pub_socket: Socket,
+    home_path: PathBuf
 }
 
 
@@ -55,7 +57,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let class = cli::prompt_class(&home_path)?;
     let date = cli::prompt_date()?;
 
-    let selected_dir = home_path.join(class).join(date.clone());
+    let selected_dir = home_path.join(class.clone()).join(date.clone());
 
     shell::mkdir_p(&selected_dir)?;
     
@@ -77,8 +79,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let attend_state = AttendFrontendState { 
         date: date,
+        class: class,
         pub_socket: pub_socket.clone(),
-        bind_socket: bind_socket
+        bind_socket: bind_socket,
+        home_path: home_path,
     };
 
     let backend_handle = tokio::spawn(async move { 
