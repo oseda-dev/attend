@@ -94,6 +94,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 
     println!("Please visit {}", pub_socket);
+
+    let _ = qr::gen_qr_code(&format!("http://{}", &pub_socket.to_string()));
     // let template_path = PathBuf::from("templates/index.html");
 
     // println!("{:?}", output);
