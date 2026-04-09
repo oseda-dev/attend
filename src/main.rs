@@ -49,6 +49,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
+    shell::touch(&home_path.join("attend.conf"))?;
 
     let class = cli::prompt_class(&home_path)?;
     let date = cli::prompt_date()?;
