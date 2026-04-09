@@ -79,8 +79,6 @@ async fn record_attendance(
 
 fn csv_add_row(path: PathBuf, email: &str, id: &str, timestamp: &str) -> Result<(), Box<dyn Error>> {
 
-
-
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)

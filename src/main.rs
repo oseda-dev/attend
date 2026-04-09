@@ -53,10 +53,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
 
-
-    // let path = qr::gen_qr_code("https://www.google.com")?;
-    // let backend_handle = tokio::spawn(backend::serve_backend());
-
     let class = cli::prompt_class(&home_path)?;
     let date = cli::prompt_date()?;
 
@@ -64,10 +60,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     shell::mkdir_p(&selected_dir)?;
     
-    // match web::serve().await {
-    //     Ok(()) => {},
-    //     Err(err) => {println!("{:?}", err)},
-    // };
     let port = 3000;
 
     let bind_socket = Socket{
@@ -95,12 +87,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Please visit {}", pub_socket);
 
-    let _ = qr::gen_qr_code(&format!("http://{}", &pub_socket.to_string()));
-    // let template_path = PathBuf::from("templates/index.html");
+    qr::gen_qr_code(selected_dir.join("qr.png"), &format!("http://{}", &pub_socket.to_string()))?;
 
-    // println!("{:?}", output);
-
-    // println!("template: {:?}", template);
     backend_handle.await?.expect("Server shut down");
     Ok(())
 }
