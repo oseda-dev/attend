@@ -1,16 +1,13 @@
 // todo document that you must do the arching yourself
 
 use std::{
-    collections::HashMap, error::Error, path::{Path, PathBuf}
+    error::Error, path::{Path, PathBuf}
 };
 
 use std::env;
 
 
-use chrono::Local;
-use inquire::{DateSelect, Select};
 use local_ip_address::linux::local_ip;
-use std::fs::read_to_string;
 
 use crate::web::Socket;
 

@@ -1,5 +1,5 @@
 use std::{
-    error::Error, fs::{OpenOptions, create_dir_all}, io, path::{Path, PathBuf}
+    error::Error, path::{Path, PathBuf}
 };
 
 pub fn expand_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {

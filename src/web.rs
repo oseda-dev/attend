@@ -1,12 +1,11 @@
-use core::{fmt, time};
-use std::{collections::HashMap, error::Error, fs::{File, OpenOptions}, os::unix::net::SocketAddr, path::PathBuf};
+use core::fmt;
+use std::{collections::HashMap, error::Error, fs::OpenOptions, path::PathBuf};
 
 use axum::{Json, Router, extract::State, http::StatusCode, response::{Html, IntoResponse}, routing::{get, post}};
-use derive_more::derive;
 use tokio::net::TcpListener;
 use std::io::Write;
 
-use crate::{AttendFrontendState, get_attend_home, templates::{self, HTML}};
+use crate::{AttendFrontendState, templates::{self}};
 
 
 #[derive(serde::Deserialize, Debug)]

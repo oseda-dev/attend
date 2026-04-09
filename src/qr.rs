@@ -1,7 +1,7 @@
 use qrcode::QrCode;
 use image::Luma;
 
-use std::{error::Error, path::{Path, PathBuf}};
+use std::{error::Error, path::Path};
 
 // path = str
 // pathbuf = String
