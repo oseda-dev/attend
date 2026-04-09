@@ -87,7 +87,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Please visit {}", pub_socket);
 
-    qr::gen_qr_code(selected_dir.join("qr.png"), &format!("http://{}", &pub_socket.to_string()))?;
+    let qr_path = selected_dir.join("qr.png");
+    qr::gen_qr_code(&qr_path, &format!("http://{}", &pub_socket.to_string()))?;
+    open::that(qr_path)?;
 
     backend_handle.await?.expect("Server shut down");
     Ok(())
