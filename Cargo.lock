@@ -103,6 +103,7 @@ dependencies = [
  "axum",
  "chrono",
  "derive_more",
+ "dirs",
  "image",
  "include_dir",
  "inquire",

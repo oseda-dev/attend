@@ -21,17 +21,20 @@ mod cli;
 mod shell;
 mod templates;
 
-
+// todo document this
 fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
-    // todo document me
     let key = "ATTEND_HOME";
 
-    let binding = env::var(key)?;
+    if let Ok(val) = env::var(key) {
+        let expanded = paths::expand_path(Path::new(&val))?;
+        return Ok(expanded);
+    }
 
-    let attend_home = Path::new(&binding);
-    let expanded = paths::expand_path(attend_home)?;
+    // fall back to home dir
+    let home_dir = dirs::home_dir()
+        .ok_or("Could not find user home directory")?;
 
-    Ok(expanded)
+    Ok(home_dir.join("Attend"))
 }
 
 #[derive(Clone, Debug)]
