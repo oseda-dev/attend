@@ -1,7 +1,5 @@
-// todo document that you must do the arching yourself
-
 use std::{
-    collections::{BTreeMap, HashSet}, error::Error, fs, path::{Path, PathBuf}
+    collections::{BTreeMap, HashSet}, error::Error, fs, path::{Path, PathBuf}, process::Command
 };
 
 use std::env;
@@ -42,6 +40,36 @@ pub struct AttendFrontendState {
     pub_socket: Socket,
     home_path: PathBuf
 }
+
+
+// ripped from oseda-cli
+/// Kills any process listening to a provided port number
+///
+/// # Platform
+/// This function only works on Unix based systems
+///
+/// # Arguments
+/// * `port_num` - the TCP port number to search for and terminate
+///
+/// # Returns
+/// * `Ok(())` if processes were successfully terminated -> even if none were found
+/// * `Err` if `lsof` or `kill` fails, or if output cannot be parsed properly
+pub fn kill_port(port_num: u16) -> Result<(), Box<dyn Error>> {
+
+    let lsof_out = Command::new("lsof")
+        .arg("-t")
+        .arg(format!("-i:{}", port_num))
+        .output()?;
+
+    let procs_on_port = String::from_utf8(lsof_out.stdout)?;
+
+    for pid in procs_on_port.lines() {
+        Command::new("kill").arg(pid).output()?;
+    }
+
+    Ok(())
+}
+
 
 fn handle_check() -> Result<(), Box<dyn Error>> {
     let home_path = get_attend_home()?;
@@ -123,6 +151,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     shell::mkdir_p(&selected_dir)?;
     
     let port = 3000;
+
+    kill_port(port)?;
+    std::thread::sleep(std::time::Duration::from_millis(1000));
 
     let bind_socket = Socket{
         ip: "0.0.0.0".to_string(),

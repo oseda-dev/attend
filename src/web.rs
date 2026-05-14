@@ -34,7 +34,16 @@ pub async fn serve(state: &AttendFrontendState) -> Result<(), Box<dyn Error + Se
         .route("/record", post(record_attendance))
         .with_state(state.clone());
 
-    let listener = TcpListener::bind(state.bind_socket.to_string()).await?;
+
+    let addr = state.bind_socket.to_string().parse::<std::net::SocketAddr>()?;
+    let socket = tokio::net::TcpSocket::new_v4()?;
+
+    socket.set_reuseaddr(true)?; 
+
+    socket.bind(addr)?;
+    let listener = socket.listen(1024)?;
+
+
     axum::serve(listener, app).await?;
 
     Ok(())
