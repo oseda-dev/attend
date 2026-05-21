@@ -7,6 +7,23 @@ use std::io::Write;
 use crate::{AttendFrontendState, templates::{self}};
 
 
+/// A request to log student attendance
+/// 
+/// # Fields
+/// 
+/// - `id` (`String`) - Describe this field.
+/// - `email` (`String`) - Describe this field.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::...;
+/// 
+/// let s = LogAttendanceRequest {
+///     id: value,
+///     email: value,
+/// };
+/// ```
 #[derive(serde::Deserialize, Debug)]
 struct LogAttendanceRequest {
     id: String,
@@ -14,6 +31,23 @@ struct LogAttendanceRequest {
 }
 
 
+/// Network Socket
+/// 
+/// # Fields
+/// 
+/// - `ip` (`String`) - IP address.
+/// - `port` (`u16`) - Network port.
+/// 
+/// # Examples
+/// 
+/// ```
+/// use crate::...;
+/// 
+/// let s = Socket {
+///     ip: "192.168.1.1".to_string(),
+///     port: 3000,
+/// };
+/// ```
 #[derive(Clone, Debug)]
 pub struct Socket {
     pub ip: String,
@@ -26,6 +60,16 @@ impl fmt::Display for Socket{
     }
 }
 
+/// Serves the attend web server
+/// 
+/// # Arguments
+/// 
+/// - State(state): State<AttendFrontendState> - State from frontend, including ATTEND_HOME, class, and date.
+/// 
+/// # Returns
+/// 
+/// - `Result<(), Box<dyn Error + Send + Sync>>` - Ok(()) on positive server termination, propogating error. This is unlikely to return in normal use
+/// 
 pub async fn serve(state: &AttendFrontendState) -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let app: Router = Router::new()
@@ -49,7 +93,13 @@ pub async fn serve(state: &AttendFrontendState) -> Result<(), Box<dyn Error + Se
 
 }
 
-// pretty much just a wrapper. This cant return a result for the axum::route function
+
+/// Thin wrapper around `render_frontend`, since we are unable to return a result from `axum::route`` functions
+/// 
+/// # Arguments
+/// 
+/// - State(state): State<AttendFrontendState> - State from frontend, including ATTEND_HOME, class, and date.
+///
 async fn frontend(State(state): State<AttendFrontendState>) -> impl IntoResponse {
     match render_frontend(state.date, state.pub_socket) {
         Ok(html_content) => (StatusCode::OK, Html(html_content)).into_response(),
@@ -60,6 +110,18 @@ async fn frontend(State(state): State<AttendFrontendState>) -> impl IntoResponse
     }
 }
 
+
+/// Renders the website to an HTML string
+/// 
+/// # Arguments
+/// 
+/// - `date` (`String`) - Current date (for attendance).
+/// - `socket` (`Socket`) - Socket the server will post to. This is needed because the JS is dynamically generated
+/// 
+/// # Returns
+/// 
+/// - `Result<String, Box<dyn std::error::Error>>` - Ok(HTML string) on success, propogating the error
+/// ```
 fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::error::Error>> {
     let template = templates::load_template()?;
     
@@ -73,6 +135,13 @@ fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::
 }
 
 
+/// Records a students attendance from the the frontend
+/// 
+/// # Arguments
+/// 
+/// - State(state): State<AttendFrontendState> - State from frontend, including ATTEND_HOME, class, and date.
+/// - Json(payload): Json<LogAttendanceRequest> - Payload of response
+/// ```
 async fn record_attendance(
     State(state): State<AttendFrontendState>,
     Json(payload): Json<LogAttendanceRequest>) {
@@ -84,6 +153,18 @@ async fn record_attendance(
     let _ = csv_add_row(log_path, &payload.email, &payload.id, "now").expect("Could not append row");
 }
 
+/// Appends a row of parameters to the provided path
+/// 
+/// # Arguments
+/// 
+/// - `path` (`PathBuf`) - Path to csv
+/// - `email` (`&str`) - Email of student.
+/// - `id` (`&str`) - ID of student (usually a session ID).
+/// - `timestamp` (`&str`) - Standard timestamp of log
+/// 
+/// # Returns
+/// 
+/// - `Result<(), Box<dyn Error>>` - Ok(()) on success, propogating the error
 fn csv_add_row(path: PathBuf, email: &str, id: &str, timestamp: &str) -> Result<(), Box<dyn Error>> {
 
     let mut file = OpenOptions::new()
