@@ -57,7 +57,11 @@ Create the file and list your classes, one per line:
 3. **Select Date:** Choose the date for the session. This ultimately defines where to log the data to. (defaults to current system date)
 4. **Display the QR Code:**. A QR will be opened in your default application. It also gets saved to the path where the log file is present. 
 5. **Record Attendance:** Students can scan the code to access the web interface and enter their emails. A session ID is stored in their browser to detect duplicate submissions.
+
+1. Stats can also be checked via `attend check`
+1. You may have to enable your port on the firewall (see `firewall-update.sh`)
 ---
+
 
 ### Data Storage
 
