@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# publish CLI to crates.io
+# Enables installation through `cargo install attend-cli`
+#
+
+set -e
+
+cargo build --release
+
+
+# see if valid compilation w/o warnings
+cargo clippy --all-targets -- -D warnings
+
+cargo fmt --check || echo "Format check failed, please run 'cargo fmt'"
+
+cargo doc
+
+cargo publish --dry-run && cargo publish || echo "Could not publish due to --dry-run failure"
