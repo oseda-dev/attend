@@ -7,7 +7,12 @@ use crate::shell::touch;
 
 use inquire::Select;
 
-
+/// Prompts the user for a date from a date picker
+/// 
+/// # Returns
+/// 
+/// - `Result<String, Box<dyn Error>>` - Ok("%Y-%m-%d") date string, propogating error
+/// 
 pub fn prompt_date() -> Result<String, Box<dyn Error>> {
     // super fancy date selector. default to system times today
     let today = Local::now().naive_local().date();
@@ -18,6 +23,16 @@ pub fn prompt_date() -> Result<String, Box<dyn Error>> {
     Ok(date.format("%Y-%m-%d").to_string())
 }
 
+/// Prompt the user for a class from their classes in their ATTEND_HOME/attend.conf file
+/// 
+/// # Arguments
+/// 
+/// - `home` (`&Path`) - ATTEND_HOME value
+/// 
+/// # Returns
+/// 
+/// - `Result<String, Box<dyn Error>>` - Ok(class), propogating error.
+/// 
 pub fn prompt_class(home: &Path) -> Result<String, Box<dyn Error>> {
     let config_path = PathBuf::from(home).join("attend.conf");
     touch(&config_path)?;
