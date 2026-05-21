@@ -1,27 +1,30 @@
 use std::{
-    collections::{BTreeMap, HashSet}, error::Error, fs, path::{Path, PathBuf}, process::Command
+    collections::{BTreeMap, HashSet},
+    error::Error,
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
 };
 
 use std::env;
-
 
 use local_ip_address::local_ip;
 
 use crate::web::Socket;
 
-mod web;
+mod cli;
 mod paths;
 mod qr;
-mod cli;
 mod shell;
 mod templates;
+mod web;
 
 /// Gets the value of the ATTEND_HOME env. variable, or the users home directory if not set
-/// 
+///
 /// # Returns
-/// 
+///
 /// - `Result<PathBuf, Box<dyn Error>>` - Ok(Path to the ATTEND_HOME directory), propogating error
-/// 
+///
 fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     let key = "ATTEND_HOME";
 
@@ -31,8 +34,7 @@ fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     }
 
     // fall back to home dir
-    let home_dir = dirs::home_dir()
-        .ok_or("Could not find user home directory")?;
+    let home_dir = dirs::home_dir().ok_or("Could not find user home directory")?;
 
     Ok(home_dir.join("Attend"))
 }
@@ -44,9 +46,8 @@ pub struct AttendFrontendState {
     class: String,
     bind_socket: Socket,
     pub_socket: Socket,
-    home_path: PathBuf
+    home_path: PathBuf,
 }
-
 
 /// Kills any process listening to a provided port number
 ///
@@ -60,7 +61,6 @@ pub struct AttendFrontendState {
 /// * `Ok(())` if processes were successfully terminated -> even if none were found
 /// * `Err` if `lsof` or `kill` fails, or if output cannot be parsed properly
 pub fn kill_port(port_num: u16) -> Result<(), Box<dyn Error>> {
-
     let lsof_out = Command::new("lsof")
         .arg("-t")
         .arg(format!("-i:{}", port_num))
@@ -75,13 +75,12 @@ pub fn kill_port(port_num: u16) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-
 /// Handler for the `check` subcommand, loggin output to stdout
-/// 
+///
 /// # Returns
-/// 
+///
 /// - `Result<(), Box<dyn Error>>` - Ok(()) on success, propogating error
-/// 
+///
 fn handle_check() -> Result<(), Box<dyn Error>> {
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
@@ -126,22 +125,26 @@ fn handle_check() -> Result<(), Box<dyn Error>> {
     println!("\nAttendance Report for: {}", class_path.display());
     println!("Total Days Recorded: {}", total_days);
     println!("{:-<55}", "");
-    println!("{:<30} | {:<10} | {:<10}", "Student Email", "Attended", "Missed");
+    println!(
+        "{:<30} | {:<10} | {:<10}",
+        "Student Email", "Attended", "Missed"
+    );
     println!("{:-<55}", "");
 
     for (email, attended_count) in &student_data {
         let missed_count = total_days - attended_count;
-        println!("{:<30} | {:<10} | {:<10}", email, attended_count, missed_count);
+        println!(
+            "{:<30} | {:<10} | {:<10}",
+            email, attended_count, missed_count
+        );
     }
 
     Ok(())
 }
 
-
 /// Runs the attend application
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-
     if let Some(arg) = std::env::args().nth(1) {
         match arg.as_str() {
             "check" => return handle_check(),
@@ -154,35 +157,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
     shell::touch(&home_path.join("attend.conf"))?;
-    
+
     let class = cli::prompt_class(&home_path)?;
     let date = cli::prompt_date()?;
-    
+
     // shell::mkdir_p(&home_path.join(class.clone()).join(date.clone()))?;
     let selected_dir = home_path.join(class.clone()).join(date.clone());
 
     shell::mkdir_p(&selected_dir)?;
 
-    
-    
     let port = 3000;
-    
+
     kill_port(port)?;
     std::thread::sleep(std::time::Duration::from_millis(1000));
 
-
-
-    let bind_socket = Socket{
+    let bind_socket = Socket {
         ip: "0.0.0.0".to_string(),
-        port: port
+        port: port,
     };
 
-    let pub_socket = Socket{
+    let pub_socket = Socket {
         ip: local_ip()?.to_string(),
-        port: port
+        port: port,
     };
 
-    let attend_state = AttendFrontendState { 
+    let attend_state = AttendFrontendState {
         date: date,
         class: class,
         pub_socket: pub_socket.clone(),
@@ -190,10 +189,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         home_path: home_path,
     };
 
-    let backend_handle = tokio::spawn(async move { 
-        web::serve(&attend_state).await
-    });
-
+    let backend_handle = tokio::spawn(async move { web::serve(&attend_state).await });
 
     println!("Please visit {}", pub_socket);
 
