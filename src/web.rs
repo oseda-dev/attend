@@ -2,7 +2,6 @@ use core::fmt;
 use std::{collections::HashMap, error::Error, fs::OpenOptions, path::PathBuf};
 
 use axum::{Json, Router, extract::State, http::StatusCode, response::{Html, IntoResponse}, routing::{get, post}};
-use tokio::net::TcpListener;
 use std::io::Write;
 
 use crate::{AttendFrontendState, templates::{self}};

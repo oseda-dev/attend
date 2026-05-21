@@ -142,18 +142,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
     shell::touch(&home_path.join("attend.conf"))?;
-
+    
     let class = cli::prompt_class(&home_path)?;
     let date = cli::prompt_date()?;
-
+    
+    // shell::mkdir_p(&home_path.join(class.clone()).join(date.clone()))?;
     let selected_dir = home_path.join(class.clone()).join(date.clone());
 
     shell::mkdir_p(&selected_dir)?;
+
+    
     
     let port = 3000;
-
+    
     kill_port(port)?;
     std::thread::sleep(std::time::Duration::from_millis(1000));
+
+
 
     let bind_socket = Socket{
         ip: "0.0.0.0".to_string(),
