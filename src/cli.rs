@@ -53,7 +53,7 @@ pub fn prompt_class(home: &Path) -> Result<String, Box<dyn Error>> {
         .map(str::to_owned)
         .collect::<Vec<String>>();
 
-    if classes.len() <= 0 {
+    if classes.is_empty() {
         println!("It seems like you have no classes in your attend.conf file");
         println!("Please add some classes and try again");
         return Err("No classes found".into());

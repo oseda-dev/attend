@@ -32,6 +32,10 @@ pub fn mkdir_p(path: &Path) -> Result<(), Box<dyn Error>> {
 /// - `Result<(), Box<dyn Error>>` - Ok(()) on success, propogating error
 ///
 pub fn touch(path: &Path) -> io::Result<()> {
-    OpenOptions::new().create(true).write(true).open(path)?;
+    OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(path)?;
     Ok(())
 }

@@ -108,10 +108,10 @@ fn handle_check() -> Result<(), Box<dyn Error>> {
 
                 for line in content.lines() {
                     let parts: Vec<&str> = line.split(',').collect();
-                    if let Some(email) = parts.first() {
-                        if !email.trim().is_empty() {
-                            present_today.insert(email.trim().to_string());
-                        }
+                    if let Some(email) = parts.first()
+                        && !email.trim().is_empty()
+                    {
+                        present_today.insert(email.trim().to_string());
                     }
                 }
 
@@ -173,20 +173,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let bind_socket = Socket {
         ip: "0.0.0.0".to_string(),
-        port: port,
+        port,
     };
 
     let pub_socket = Socket {
         ip: local_ip()?.to_string(),
-        port: port,
+        port,
     };
 
     let attend_state = AttendFrontendState {
-        date: date,
-        class: class,
+        date,
+        class,
         pub_socket: pub_socket.clone(),
-        bind_socket: bind_socket,
-        home_path: home_path,
+        bind_socket,
+        home_path,
     };
 
     let backend_handle = tokio::spawn(async move { web::serve(&attend_state).await });

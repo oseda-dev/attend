@@ -19,8 +19,8 @@ use crate::{
 ///
 /// # Fields
 ///
-/// - `id` (`String`) - Describe this field.
-/// - `email` (`String`) - Describe this field.
+/// - `id` (`String`) - Unique-ish ID for student, probably a session ID
+/// - `email` (`String`) - Student email.
 ///
 /// # Examples
 ///
@@ -28,8 +28,8 @@ use crate::{
 /// use crate::...;
 ///
 /// let s = LogAttendanceRequest {
-///     id: value,
-///     email: value,
+///     id: "UUID".to_string(),
+///     email: "john.doe@university.com".to_string(),
 /// };
 /// ```
 #[derive(serde::Deserialize, Debug)]
@@ -159,8 +159,7 @@ async fn record_attendance(
     .iter()
     .collect();
 
-    let _ =
-        csv_add_row(log_path, &payload.email, &payload.id, "now").expect("Could not append row");
+    csv_add_row(log_path, &payload.email, &payload.id, "now").expect("Could not append row");
 }
 
 /// Appends a row of parameters to the provided path
