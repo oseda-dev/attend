@@ -16,7 +16,12 @@ mod cli;
 mod shell;
 mod templates;
 
-// todo document this
+/// Gets the value of the ATTEND_HOME env. variable, or the users home directory if not set
+/// 
+/// # Returns
+/// 
+/// - `Result<PathBuf, Box<dyn Error>>` - Ok(Path to the ATTEND_HOME directory), propogating error
+/// 
 fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     let key = "ATTEND_HOME";
 
@@ -32,6 +37,7 @@ fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     Ok(home_dir.join("Attend"))
 }
 
+/// All state necessary for rendering the frontend of the applications.
 #[derive(Clone, Debug)]
 pub struct AttendFrontendState {
     date: String,
@@ -42,7 +48,6 @@ pub struct AttendFrontendState {
 }
 
 
-// ripped from oseda-cli
 /// Kills any process listening to a provided port number
 ///
 /// # Platform
@@ -71,6 +76,12 @@ pub fn kill_port(port_num: u16) -> Result<(), Box<dyn Error>> {
 }
 
 
+/// Handler for the `check` subcommand, loggin output to stdout
+/// 
+/// # Returns
+/// 
+/// - `Result<(), Box<dyn Error>>` - Ok(()) on success, propogating error
+/// 
 fn handle_check() -> Result<(), Box<dyn Error>> {
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
@@ -127,6 +138,7 @@ fn handle_check() -> Result<(), Box<dyn Error>> {
 }
 
 
+/// Runs the attend application
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 
