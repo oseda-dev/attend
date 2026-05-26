@@ -1,5 +1,10 @@
 [package]
-name = "attendence-app"
+name = "attend"
+description = "A classroom attendance tracking CLI"
+license = "MIT"
+homepage = "https://github.com/oseda-dev/attend"
+repository = "https://github.com/oseda-dev/attend"
+readme = "README.md"
 version = "0.1.0"
 edition = "2024"
 

@@ -71,7 +71,7 @@ impl fmt::Display for Socket {
 ///
 /// # Arguments
 ///
-/// - State(state): State<AttendFrontendState> - State from frontend, including ATTEND_HOME, class, and date.
+/// - State(state): `State<AttendFrontendState>` - State from frontend, including ATTEND_HOME, class, and date.
 ///
 /// # Returns
 ///
@@ -103,7 +103,7 @@ pub async fn serve(state: &AttendFrontendState) -> Result<(), Box<dyn Error + Se
 ///
 /// # Arguments
 ///
-/// - State(state): State<AttendFrontendState> - State from frontend, including ATTEND_HOME, class, and date.
+/// - State(state): `State<AttendFrontendState>` - State from frontend, including ATTEND_HOME, class, and date.
 ///
 async fn frontend(State(state): State<AttendFrontendState>) -> impl IntoResponse {
     match render_frontend(state.date, state.pub_socket) {
@@ -126,7 +126,7 @@ async fn frontend(State(state): State<AttendFrontendState>) -> impl IntoResponse
 /// # Returns
 ///
 /// - `Result<String, Box<dyn std::error::Error>>` - Ok(HTML string) on success, propogating the error
-/// 
+///
 fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::error::Error>> {
     let template = templates::load_template()?;
 
@@ -143,9 +143,9 @@ fn render_frontend(date: String, socket: Socket) -> Result<String, Box<dyn std::
 ///
 /// # Arguments
 ///
-/// - State(state): State<AttendFrontendState> - State from frontend, including ATTEND_HOME, class, and date.
-/// - Json(payload): Json<LogAttendanceRequest> - Payload of response
-/// 
+/// - State(state): `State<AttendFrontendState>` - State from frontend, including ATTEND_HOME, class, and date.
+/// - Json(payload): `Json<LogAttendanceRequest>` - Payload of response
+///
 async fn record_attendance(
     State(state): State<AttendFrontendState>,
     Json(payload): Json<LogAttendanceRequest>,
