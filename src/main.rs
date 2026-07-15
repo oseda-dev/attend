@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashSet},
     error::Error,
     fs,
     path::{Path, PathBuf},
@@ -23,7 +23,7 @@ mod web;
 ///
 /// # Returns
 ///
-/// - `Result<PathBuf, Box<dyn Error>>` - Ok(Path to the ATTEND_HOME directory), propogating error
+/// - `Result<PathBuf, Box<dyn Error>>` - Ok(Path to the ATTEND_HOME directory), propagating error
 ///
 fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     let key = "ATTEND_HOME";
@@ -75,12 +75,50 @@ pub fn kill_port(port_num: u16) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Handler for the `check` subcommand, loggin output to stdout
-///
-/// # Returns
-///
-/// - `Result<(), Box<dyn Error>>` - Ok(()) on success, propogating error
-///
+/// Helper function to parse all class directory data to retrieve all valid class dates
+/// and each student's set of attended dates.
+fn load_attendance_data(class_path: &Path) -> Result<(BTreeSet<String>, BTreeMap<String, BTreeSet<String>>), Box<dyn Error>> {
+    let mut all_days = BTreeSet::new();
+    let mut student_attendance_days: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+
+    for entry in fs::read_dir(class_path)? {
+        let entry = entry?;
+        let day_path = entry.path();
+
+        if day_path.is_dir() {
+            let log_file = day_path.join("log.csv");
+            if log_file.exists() {
+                if let Some(day_name) = day_path.file_name().and_then(|n| n.to_str()) {
+                    let day_str = day_name.to_string();
+                    all_days.insert(day_str.clone());
+
+                    let mut present_today = HashSet::new();
+                    let content = fs::read_to_string(log_file)?;
+
+                    for line in content.lines() {
+                        let parts: Vec<&str> = line.split(',').collect();
+                        if let Some(email) = parts.first()
+                            && !email.trim().is_empty()
+                        {
+                            present_today.insert(email.trim().to_string());
+                        }
+                    }
+
+                    for email in present_today {
+                        student_attendance_days
+                            .entry(email)
+                            .or_insert_with(BTreeSet::new)
+                            .insert(day_str.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    Ok((all_days, student_attendance_days))
+}
+
+/// Handler for the `check` subcommand, logging the overview table to stdout
 fn handle_check() -> Result<(), Box<dyn Error>> {
     let home_path = get_attend_home()?;
     shell::mkdir_p(&home_path)?;
@@ -89,38 +127,8 @@ fn handle_check() -> Result<(), Box<dyn Error>> {
     let class = cli::prompt_class(&home_path)?;
     let class_path: PathBuf = home_path.join(class);
 
-    // b tree map is basically just a sorted map
-    let mut student_data: BTreeMap<String, usize> = BTreeMap::new();
-    let mut total_days = 0;
-
-    for entry in fs::read_dir(&class_path)? {
-        let entry = entry?;
-        let day_path = entry.path();
-
-        if day_path.is_dir() {
-            let log_file = day_path.join("log.csv");
-            if log_file.exists() {
-                total_days += 1;
-
-                // hash set to ignore dupes
-                let mut present_today = HashSet::new();
-                let content = fs::read_to_string(log_file)?;
-
-                for line in content.lines() {
-                    let parts: Vec<&str> = line.split(',').collect();
-                    if let Some(email) = parts.first()
-                        && !email.trim().is_empty()
-                    {
-                        present_today.insert(email.trim().to_string());
-                    }
-                }
-
-                for email in present_today {
-                    *student_data.entry(email).or_insert(0) += 1;
-                }
-            }
-        }
-    }
+    let (all_days, student_attendance_days) = load_attendance_data(&class_path)?;
+    let total_days = all_days.len();
 
     println!("\nAttendance Report for: {}", class_path.display());
     println!("Total Days Recorded: {}", total_days);
@@ -131,7 +139,8 @@ fn handle_check() -> Result<(), Box<dyn Error>> {
     );
     println!("{:-<55}", "");
 
-    for (email, attended_count) in &student_data {
+    for (email, attended_dates) in &student_attendance_days {
+        let attended_count = attended_dates.len();
         let missed_count = total_days - attended_count;
         println!(
             "{:<30} | {:<10} | {:<10}",
@@ -142,14 +151,73 @@ fn handle_check() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Handler for the `audit` subcommand, auditing a specific student's precise dates
+fn handle_audit(email: String) -> Result<(), Box<dyn Error>> {
+    let home_path = get_attend_home()?;
+    shell::mkdir_p(&home_path)?;
+    shell::touch(&home_path.join("attend.conf"))?;
+
+    let class = cli::prompt_class(&home_path)?;
+    let class_path: PathBuf = home_path.join(class);
+
+    let (all_days, student_attendance_days) = load_attendance_data(&class_path)?;
+
+    let target_clean = email.trim();
+    println!("\n=================================================");
+    println!("ATTENDANCE AUDIT FOR: {}", target_clean);
+    println!("Classroom: {}", class_path.display());
+    println!("=================================================");
+
+    // default to empty if student never checkd in
+    let empty_set = BTreeSet::new();
+    let attended_dates = student_attendance_days.get(target_clean).unwrap_or(&empty_set);
+
+    let missed_dates: Vec<&String> = all_days.difference(attended_dates).collect();
+
+    //  handle attended
+    println!("\n[Attended Days - {} total]:", attended_dates.len());
+    if attended_dates.is_empty() {
+        println!("  (None)");
+    } else {
+        for date in attended_dates {
+            println!("  [X] {}", date);
+        }
+    }
+
+    // handle missed
+    println!("\n[Missed Days - {} total]:", missed_dates.len());
+    if missed_dates.is_empty() {
+        println!("  None");
+    } else {
+        for date in missed_dates {
+            println!("  [ ] {}", date);
+        }
+    }
+
+    Ok(())
+}
+
 /// Runs the attend application
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    if let Some(arg) = std::env::args().nth(1) {
-        match arg.as_str() {
-            "check" => return handle_check(),
+    let args: Vec<String> = std::env::args().collect();
+    
+    if args.len() > 1 {
+        let subcommand = &args[1];
+        match subcommand.as_str() {
+            "check" => {
+                return handle_check();
+            }
+            "audit" => {
+                if args.len() > 2 {
+                    let email = args[2].clone();
+                    return handle_audit(email);
+                } else {
+                    return Err("Err: Missing email address.\nUsage: cargo run -- audit [email]".into());
+                }
+            }
             _ => {
-                return Err("Err: Unsupported Argument".into());
+                return Err(format!("Err: Unsupported Subcommand '{}'. Supported: 'check', 'audit'", subcommand).into());
             }
         }
     }
