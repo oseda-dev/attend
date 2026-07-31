@@ -92,7 +92,7 @@
         
         <form id="signupForm" class="form-group">
             <!-- im hard coding this placeholder to be wright.edu, if someone else wants to ever uses this, feel free to adjust -->
-            <input type="email" id="emailInput" placeholder="name@wright.edu" required>
+            <input type="email" id="emailInput" placeholder="name.#@wright.edu" required>
             <button type="submit">Submit</button>
         </form>
 
@@ -121,6 +121,12 @@
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const email = document.getElementById('emailInput').value;
+
+                const pattern = /^.+\.\d+@wright\.edu$/;
+                if(!pattern.test(email)){
+                    alert("Invalid wright.edu email, try again");
+                    return
+                }
                 
                 fetch('http://{{ SOCKET }}/record', {
                     method: 'POST',
