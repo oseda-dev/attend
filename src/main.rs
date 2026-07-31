@@ -18,6 +18,7 @@ mod qr;
 mod shell;
 mod templates;
 mod web;
+mod duplicates;
 
 /// Gets the value of the ATTEND_HOME env. variable, or the users home directory if not set
 ///
@@ -215,6 +216,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 } else {
                     return Err("Err: Missing email address.\nUsage: cargo run -- audit [email]".into());
                 }
+            },
+            "duplicates" => {
+                return duplicates::handle_duplicates();
             }
             _ => {
                 return Err(format!("Err: Unsupported Subcommand '{}'. Supported: 'check', 'audit'", subcommand).into());
@@ -268,3 +272,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
     backend_handle.await?.expect("Server shut down");
     Ok(())
 }
+

@@ -135,7 +135,7 @@
                     },
                     body: JSON.stringify({
                         id: sessionId,
-                        email: email,
+                        email: email.trim(),
                     }),
                 })
                 .then(response => {
