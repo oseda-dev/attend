@@ -13,12 +13,12 @@ use local_ip_address::local_ip;
 use crate::web::Socket;
 
 mod cli;
+mod duplicates;
 mod paths;
 mod qr;
 mod shell;
 mod templates;
 mod web;
-mod duplicates;
 
 /// Gets the value of the ATTEND_HOME env. variable, or the users home directory if not set
 ///
@@ -78,7 +78,9 @@ pub fn kill_port(port_num: u16) -> Result<(), Box<dyn Error>> {
 
 /// Helper function to parse all class directory data to retrieve all valid class dates
 /// and each student's set of attended dates.
-fn load_attendance_data(class_path: &Path) -> Result<(BTreeSet<String>, BTreeMap<String, BTreeSet<String>>), Box<dyn Error>> {
+fn load_attendance_data(
+    class_path: &Path,
+) -> Result<(BTreeSet<String>, BTreeMap<String, BTreeSet<String>>), Box<dyn Error>> {
     let mut all_days = BTreeSet::new();
     let mut student_attendance_days: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
@@ -171,7 +173,9 @@ fn handle_audit(email: String) -> Result<(), Box<dyn Error>> {
 
     // default to empty if student never checkd in
     let empty_set = BTreeSet::new();
-    let attended_dates = student_attendance_days.get(target_clean).unwrap_or(&empty_set);
+    let attended_dates = student_attendance_days
+        .get(target_clean)
+        .unwrap_or(&empty_set);
 
     let missed_dates: Vec<&String> = all_days.difference(attended_dates).collect();
 
@@ -202,7 +206,7 @@ fn handle_audit(email: String) -> Result<(), Box<dyn Error>> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
-    
+
     if args.len() > 1 {
         let subcommand = &args[1];
         match subcommand.as_str() {
@@ -214,14 +218,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let email = args[2].clone();
                     return handle_audit(email);
                 } else {
-                    return Err("Err: Missing email address.\nUsage: cargo run -- audit [email]".into());
+                    return Err(
+                        "Err: Missing email address.\nUsage: cargo run -- audit [email]".into(),
+                    );
                 }
-            },
+            }
             "duplicates" => {
                 return duplicates::handle_duplicates();
             }
             _ => {
-                return Err(format!("Err: Unsupported Subcommand '{}'. Supported: 'check', 'audit'", subcommand).into());
+                return Err(format!(
+                    "Err: Unsupported Subcommand '{}'. Supported: 'check', 'audit'",
+                    subcommand
+                )
+                .into());
             }
         }
     }
@@ -272,4 +282,3 @@ async fn main() -> Result<(), Box<dyn Error>> {
     backend_handle.await?.expect("Server shut down");
     Ok(())
 }
-

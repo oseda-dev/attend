@@ -1,4 +1,9 @@
-use std::{collections::HashMap, error::Error, fs, path::{Path, PathBuf}};
+use std::{
+    collections::HashMap,
+    error::Error,
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::{cli, get_attend_home, shell};
 use std::collections::HashSet;
@@ -45,7 +50,8 @@ fn find_cross_student_duplicate_sessions(
     let suspicious_duplicates = session_map
         .into_iter()
         .filter(|(_, occurrences)| {
-            let unique_emails: HashSet<&String> = occurrences.iter().map(|(_, email)| email).collect();
+            let unique_emails: HashSet<&String> =
+                occurrences.iter().map(|(_, email)| email).collect();
             unique_emails.len() > 1
         })
         .collect();
@@ -72,7 +78,10 @@ pub fn handle_duplicates() -> Result<(), Box<dyn Error>> {
     if duplicates.is_empty() {
         println!("\nNo session IDs were shared between different students!");
     } else {
-        println!("\nFound {} session ID(s) shared by MULTIPLE students:\n", duplicates.len());
+        println!(
+            "\nFound {} session ID(s) shared by MULTIPLE students:\n",
+            duplicates.len()
+        );
         for (session_id, occurrences) in duplicates {
             println!("Session ID: {}", session_id);
             for (date, email) in occurrences {
