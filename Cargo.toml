@@ -5,7 +5,7 @@ license = "MIT"
 homepage = "https://github.com/oseda-dev/attend"
 repository = "https://github.com/oseda-dev/attend"
 readme = "README.md"
-version = "0.2.1"
+version = "1.0.0"
 edition = "2024"
 
 [dependencies]
