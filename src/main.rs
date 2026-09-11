@@ -37,7 +37,7 @@ fn get_attend_home() -> Result<PathBuf, Box<dyn Error>> {
     // fall back to home dir
     let home_dir = dirs::home_dir().ok_or("Could not find user home directory")?;
 
-    Ok(home_dir.join("Attend"))
+    Ok(home_dir.join(".attend"))
 }
 
 /// All state necessary for rendering the frontend of the applications.
