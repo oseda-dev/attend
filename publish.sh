@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # publish CLI to crates.io
-# Enables installation through `cargo install attend-cli`
+# Enables installation through `cargo install attend`
 #
 
 set -e
