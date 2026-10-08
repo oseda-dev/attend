@@ -159,7 +159,7 @@ async fn record_attendance(
     .iter()
     .collect();
 
-    csv_add_row(log_path, &payload.email, &payload.id, "now").expect("Could not append row");
+    csv_add_row(log_path, &payload.email.to_lowercase(), &payload.id, "now").expect("Could not append row");
 }
 
 /// Appends a row of parameters to the provided path
